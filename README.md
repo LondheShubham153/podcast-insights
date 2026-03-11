@@ -65,7 +65,13 @@ Edit `.env` and add your API keys.
 temporal server start-dev
 ```
 
-### 4. Run the app
+### 4. Start the worker
+
+```
+python worker.py
+```
+
+### 5. Run the API server
 
 ```
 python run.py
