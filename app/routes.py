@@ -29,6 +29,7 @@ async def start_analysis(request: Request, body: AnalyzeRequestAPI) -> StartResp
             channel_query=body.channel_query,
             interests=body.interests,
             max_videos=body.max_videos,
+            provider=body.provider,
         ),
         id=wf_id,
         task_queue=request.app.state.task_queue,

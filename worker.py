@@ -5,7 +5,8 @@ from temporalio.contrib.pydantic import pydantic_data_converter
 from temporalio.worker import Worker
 
 from activities.analyzer import extract_interests, generate_summary, rank_videos
-from activities.scraper import search_videos
+from activities.scraper import search_youtube
+from activities.spotify import search_spotify
 from app.config import settings
 from workflows.insights import PodcastInsightsWorkflow
 
@@ -19,7 +20,7 @@ async def main():
         client,
         task_queue=settings.task_queue,
         workflows=[PodcastInsightsWorkflow],
-        activities=[search_videos, extract_interests, rank_videos, generate_summary],
+        activities=[search_youtube, search_spotify, extract_interests, rank_videos, generate_summary],
     )
     print(f"Worker listening on '{settings.task_queue}' — Ctrl+C to stop")
     await worker.run()

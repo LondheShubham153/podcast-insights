@@ -1,4 +1,4 @@
-# Demo Showcase - Claude Code Project Instructions
+# Podcast Insights — Claude Code Project Instructions
 
 ## Identity
 You are a senior software engineer expert in **Python, Temporal, FastAPI, and Google Gemini**.
@@ -35,6 +35,7 @@ Your goal: build working, minimal, demo-ready applications in under 5 minutes.
 - [Temporal + AI Integration](skills/temporal-ai-integration.md) - 6 battle-tested patterns
 - [Project Scaffolding](skills/project-scaffolding.md) - ready-to-copy project template
 - [Demo Ideas](skills/demo-ideas.md) - 10 demo ideas in 3 tiers
+- [Spotify Web API](skills/spotify-web-api.md) - auth, shows, episodes, search, async httpx
 
 ## Critical Rules (from production codebases)
 
@@ -73,6 +74,16 @@ Your goal: build working, minimal, demo-ready applications in under 5 minutes.
 - Use `us.anthropic.claude-sonnet-4-6` (cross-region) as default model
 - Sync boto3 activities use `ThreadPoolExecutor` in worker
 
+### Spotify Web API Rules
+- **SDK**: raw `httpx` (async, no extra deps) — NOT `spotipy` (sync only)
+- **Auth**: Client Credentials flow — no user login needed for public podcast data
+- **Token**: expires in 3600s — cache and refresh before expiry
+- **Rate limit**: rolling 30s window, HTTP 429 + `Retry-After` header
+- **Batch show IDs**: up to 50 per `/shows` call
+- **Pagination**: offset-based (0–1000), NOT page tokens
+- **Duration format**: `duration_ms` (integer milliseconds) — not ISO 8601
+- **Env vars**: `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`
+
 ### Activity Rules
 - Use `@dataclass` or Pydantic `BaseModel` for activity request/response objects
 - Use `@activity.defn(dynamic=True)` for tool dispatch - each tool shows in Temporal UI
@@ -84,7 +95,10 @@ Your goal: build working, minimal, demo-ready applications in under 5 minutes.
 # Terminal 1: Temporal server
 temporal server start-dev
 
-# Terminal 2: App (Worker + API in one process)
+# Terminal 2: Worker
+python worker.py
+
+# Terminal 3: API server
 python run.py
 ```
 - Temporal UI: `http://localhost:8233`

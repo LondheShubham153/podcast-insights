@@ -57,6 +57,7 @@ class WorkflowInput:
     channel_query: str
     interests: str
     max_videos: int = 10
+    provider: str = "youtube"
 
 
 @dataclass
@@ -99,6 +100,7 @@ class AnalyzeRequestAPI(BaseModel):
     channel_query: str = Field(min_length=1)
     interests: str = Field(min_length=1)
     max_videos: int = Field(default=10, ge=3, le=50)
+    provider: str = Field(default="youtube", pattern="^(youtube|spotify)$")
 
 
 class StartResponse(BaseModel):
@@ -120,3 +122,4 @@ class WorkflowResult(BaseModel):
     key_insights: list[str]
     tone: str
     video_count: int
+    provider: str = "youtube"

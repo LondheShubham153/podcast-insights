@@ -7,7 +7,8 @@ with workflow.unsafe.imports_passed_through():
     import asyncio
 
     from activities.analyzer import extract_interests, generate_summary, rank_videos
-    from activities.scraper import search_videos
+    from activities.scraper import search_youtube
+    from activities.spotify import search_spotify
     from models.schemas import (
         ExtractInterestsRequest,
         RankRequest,
@@ -32,10 +33,12 @@ class PodcastInsightsWorkflow:
 
     @workflow.run
     async def run(self, input: WorkflowInput) -> dict:
-        # Step 1: Search YouTube (Data API v3, async, 30s)
-        self._status = WorkflowStatus("searching", f"Searching YouTube for: {input.channel_query}")
+        # Step 1: Search provider (YouTube or Spotify)
+        search_fn = search_spotify if input.provider == "spotify" else search_youtube
+        provider_label = "Spotify" if input.provider == "spotify" else "YouTube"
+        self._status = WorkflowStatus("searching", f"Searching {provider_label} for: {input.channel_query}")
         search_result = await workflow.execute_activity(
-            search_videos,
+            search_fn,
             SearchRequest(query=input.channel_query, interests=input.interests, max_results=input.max_videos),
             start_to_close_timeout=timedelta(seconds=30),
             retry_policy=RETRY,
@@ -50,6 +53,7 @@ class PodcastInsightsWorkflow:
                 "key_insights": [],
                 "tone": "unknown",
                 "video_count": 0,
+                "provider": input.provider,
             }
 
         videos = search_result.videos
@@ -100,6 +104,7 @@ class PodcastInsightsWorkflow:
             "key_insights": summary_result.key_insights,
             "tone": summary_result.tone,
             "video_count": len(videos),
+            "provider": input.provider,
         }
 
     @workflow.query

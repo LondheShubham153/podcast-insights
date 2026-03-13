@@ -40,7 +40,7 @@ def _parse_duration(iso: str) -> str:
 
 
 @activity.defn
-async def search_videos(request: SearchRequest) -> SearchResult:
+async def search_youtube(request: SearchRequest) -> SearchResult:
     """Find channel, then search WITHIN it using user interests for relevance."""
     api_key = settings.youtube_api_key
 

@@ -9,6 +9,8 @@ class Settings(BaseSettings):
     gemini_model: str = "gemini-2.5-flash"
     temporal_host: str = "localhost:7233"
     task_queue: str = "podcast-insights"
+    spotify_client_id: str = ""
+    spotify_client_secret: str = ""
 
 
 settings = Settings()

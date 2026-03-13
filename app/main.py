@@ -24,7 +24,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="YouTube Podcast Insights Agent", lifespan=lifespan)
+app = FastAPI(title="Durable Podcast Insights", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],

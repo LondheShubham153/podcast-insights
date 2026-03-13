@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>YouTube Podcast Insights Agent</title>
+<title>Durable Podcast Insights</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
   @keyframes pulse-glow {
@@ -44,24 +44,50 @@
 
   <!-- Header -->
   <div class="text-center mb-8">
-    <h1 class="text-3xl sm:text-4xl font-extrabold bg-gradient-to-r from-red-400 via-rose-400 to-red-500 bg-clip-text text-transparent mb-2">
-      YouTube Podcast Insights Agent
+    <h1 class="text-3xl sm:text-4xl font-extrabold bg-gradient-to-r from-red-400 via-rose-400 to-emerald-400 bg-clip-text text-transparent mb-2">
+      Durable Podcast Insights
     </h1>
-    <p class="text-slate-400 text-sm">
-      Durable AI pipeline powered by
-      <span class="text-red-400 font-semibold">Temporal</span> +
-      <span class="text-rose-400 font-semibold">Gemini</span> +
-      <span class="text-red-300 font-semibold">YouTube Data API</span>
-    </p>
+    <p class="text-slate-500 text-sm mb-3">AI-powered podcast recommendations, built to never fail</p>
+    <div class="flex items-center justify-center gap-4 flex-wrap">
+      <div class="flex items-center gap-1.5">
+        <img src="https://cdn.simpleicons.org/temporal/38bdf8" alt="Temporal" class="w-4 h-4">
+        <span class="text-xs font-medium text-sky-400">Temporal</span>
+      </div>
+      <span class="text-slate-700 text-xs">+</span>
+      <div class="flex items-center gap-1.5">
+        <img src="https://cdn.simpleicons.org/googlegemini/fb7185" alt="Gemini" class="w-4 h-4">
+        <span class="text-xs font-medium text-rose-400">Gemini</span>
+      </div>
+      <span class="text-slate-700 text-xs">+</span>
+      <div class="flex items-center gap-1.5">
+        <img src="https://cdn.simpleicons.org/youtube/f87171" alt="YouTube" class="w-4 h-4">
+        <span class="text-xs font-medium text-red-300">YouTube</span>
+      </div>
+      <span class="text-slate-700 text-xs">&</span>
+      <div class="flex items-center gap-1.5">
+        <img src="https://cdn.simpleicons.org/spotify/34d399" alt="Spotify" class="w-4 h-4">
+        <span class="text-xs font-medium text-emerald-400">Spotify</span>
+      </div>
+    </div>
   </div>
 
   <!-- Compact Form Card -->
   <div class="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-5 sm:p-6 mb-6">
     <form id="form">
+      <!-- Provider Toggle -->
+      <div class="flex gap-2 mb-4">
+        <button type="button" data-provider="youtube" class="provider-btn flex-1 px-4 py-2 rounded-xl text-sm font-semibold border transition-all duration-200 bg-red-500/20 border-red-500/40 text-red-300 flex items-center justify-center gap-2">
+          <img src="https://cdn.simpleicons.org/youtube/fca5a5" alt="" class="w-4 h-4 provider-icon">YouTube
+        </button>
+        <button type="button" data-provider="spotify" class="provider-btn flex-1 px-4 py-2 rounded-xl text-sm font-semibold border transition-all duration-200 bg-white/5 border-white/10 text-slate-500 hover:bg-white/10 flex items-center justify-center gap-2">
+          <img src="https://cdn.simpleicons.org/spotify/64748b" alt="" class="w-4 h-4 provider-icon">Spotify
+        </button>
+      </div>
+      <input type="hidden" id="provider" value="youtube">
       <!-- Row 1: Channel + Interests side by side -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
         <div>
-          <label for="query" class="block text-xs text-slate-400 mb-1">Channel Name or Keywords</label>
+          <label for="query" id="query-label" class="block text-xs text-slate-400 mb-1">Channel Name or Keywords</label>
           <input id="query" type="text" placeholder="e.g. Lex Fridman, Fireship" required
             class="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/30 transition">
         </div>
@@ -75,7 +101,7 @@
       <div class="flex items-end gap-4">
         <div class="flex-1">
           <label for="max-videos" class="block text-xs text-slate-400 mb-1">
-            Max Videos: <span id="slider-value" class="text-red-400 font-semibold">10</span>
+            <span id="slider-label">Max Videos</span>: <span id="slider-value" class="text-red-400 font-semibold">10</span>
           </label>
           <input id="max-videos" type="range" min="3" max="50" value="10"
             class="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer">
@@ -148,7 +174,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-5 gap-5 animate-fade-in-up" style="animation-delay: 0s">
       <!-- Summary (3/5 width) -->
       <div class="lg:col-span-3 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden">
-        <div class="h-1 bg-gradient-to-r from-red-500 to-rose-600"></div>
+        <div id="summary-bar" class="h-1 bg-gradient-to-r from-red-500 to-rose-600"></div>
         <div id="summary" class="p-5"></div>
       </div>
 
@@ -167,11 +193,18 @@
   </div>
 
   <!-- Footer -->
-  <div class="flex justify-center gap-6 mt-8 text-xs">
-    <span class="text-slate-600">Powered by Temporal · Gemini · YouTube Data API</span>
-    <a href="http://localhost:8233" target="_blank" class="text-red-400 hover:text-red-300 transition">Temporal UI</a>
-    <a href="/docs" target="_blank" class="text-red-400 hover:text-red-300 transition">API Docs</a>
-    <a href="/health" target="_blank" class="text-red-400 hover:text-red-300 transition">Health</a>
+  <div class="flex flex-col items-center gap-3 mt-8">
+    <div class="flex items-center gap-3 text-xs opacity-40">
+      <img src="https://cdn.simpleicons.org/temporal/94a3b8" alt="" class="w-3 h-3">
+      <img src="https://cdn.simpleicons.org/googlegemini/94a3b8" alt="" class="w-3 h-3">
+      <img src="https://cdn.simpleicons.org/youtube/94a3b8" alt="" class="w-3 h-3">
+      <img src="https://cdn.simpleicons.org/spotify/94a3b8" alt="" class="w-3 h-3">
+    </div>
+    <div class="flex gap-4 text-xs">
+      <a href="http://localhost:8233" target="_blank" class="text-slate-600 hover:text-slate-400 transition">Temporal UI</a>
+      <a href="/docs" target="_blank" class="text-slate-600 hover:text-slate-400 transition">API Docs</a>
+      <a href="/health" target="_blank" class="text-slate-600 hover:text-slate-400 transition">Health</a>
+    </div>
   </div>
 
 </div>
@@ -202,6 +235,39 @@ const slider = document.getElementById('max-videos');
 const sliderValue = document.getElementById('slider-value');
 
 slider.addEventListener('input', () => { sliderValue.textContent = slider.value; });
+
+const PROVIDER_CONFIG = {
+  youtube: { queryLabel: 'Channel Name or Keywords', queryPlaceholder: 'e.g. Lex Fridman, Fireship', sliderLabel: 'Max Videos', btnText: 'Analyze Channel', itemWord: 'videos' },
+  spotify: { queryLabel: 'Podcast or Show Name', queryPlaceholder: 'e.g. Lex Fridman, Huberman Lab', sliderLabel: 'Max Episodes', btnText: 'Analyze Show', itemWord: 'episodes' },
+};
+
+function setProvider(provider) {
+  document.getElementById('provider').value = provider;
+  const cfg = PROVIDER_CONFIG[provider];
+  document.getElementById('query-label').textContent = cfg.queryLabel;
+  document.getElementById('query').placeholder = cfg.queryPlaceholder;
+  document.getElementById('slider-label').textContent = cfg.sliderLabel;
+  btn.textContent = cfg.btnText;
+  const baseCls = 'provider-btn flex-1 px-4 py-2 rounded-xl text-sm font-semibold border transition-all duration-200 flex items-center justify-center gap-2';
+  document.querySelectorAll('.provider-btn').forEach(x => {
+    x.className = baseCls + ' bg-white/5 border-white/10 text-slate-500 hover:bg-white/10';
+  });
+  const active = document.querySelector(`[data-provider="${provider}"]`);
+  if (provider === 'spotify') {
+    active.className = baseCls + ' bg-emerald-500/20 border-emerald-500/40 text-emerald-300';
+  } else {
+    active.className = baseCls + ' bg-red-500/20 border-red-500/40 text-red-300';
+  }
+  // Swap icon colors: active = brand color, inactive = muted
+  const ytIcon = document.querySelector('[data-provider="youtube"] .provider-icon');
+  const spIcon = document.querySelector('[data-provider="spotify"] .provider-icon');
+  ytIcon.src = provider === 'youtube' ? 'https://cdn.simpleicons.org/youtube/fca5a5' : 'https://cdn.simpleicons.org/youtube/64748b';
+  spIcon.src = provider === 'spotify' ? 'https://cdn.simpleicons.org/spotify/6ee7b7' : 'https://cdn.simpleicons.org/spotify/64748b';
+}
+
+document.querySelectorAll('.provider-btn').forEach(b => {
+  b.addEventListener('click', () => setProvider(b.dataset.provider));
+});
 
 function buildPipeline() {
   pipelineEl.innerHTML = PHASES.map((p, i) => `
@@ -262,7 +328,7 @@ form.addEventListener('submit', async (e) => {
     const res = await fetch('/api/analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ channel_query: query, interests: interestsVal, max_videos: parseInt(slider.value) || 10 }),
+      body: JSON.stringify({ channel_query: query, interests: interestsVal, max_videos: parseInt(slider.value) || 10, provider: document.getElementById('provider').value }),
     });
     if (!res.ok) throw new Error(await res.text());
     const { workflow_id } = await res.json();
@@ -318,7 +384,7 @@ function renderResults(data) {
   skeleton.classList.add('hidden');
   results.classList.remove('hidden');
   btn.disabled = false;
-  btn.textContent = 'Analyze Channel';
+  btn.textContent = PROVIDER_CONFIG[document.getElementById('provider').value].btnText;
 
   // Force re-trigger animations
   results.querySelectorAll('.animate-fade-in-up').forEach(el => {
@@ -327,15 +393,31 @@ function renderResults(data) {
     el.style.animation = '';
   });
 
+  // Adapt accent bar to provider
+  const summaryBar = document.getElementById('summary-bar');
+  summaryBar.className = data.provider === 'spotify'
+    ? 'h-1 bg-gradient-to-r from-emerald-500 to-emerald-600'
+    : 'h-1 bg-gradient-to-r from-red-500 to-rose-600';
+
+  const isSpotify = data.provider === 'spotify';
+  const itemWord = isSpotify ? 'episodes' : 'videos';
+  const providerLabel = isSpotify ? 'Spotify' : 'YouTube';
+  const providerBadgeCls = isSpotify
+    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+    : 'bg-red-500/20 text-red-300 border-red-500/30';
+  const toneBadgeCls = isSpotify
+    ? 'from-emerald-500/20 to-emerald-500/20 text-emerald-300 border-emerald-500/20'
+    : 'from-red-500/20 to-rose-500/20 text-red-300 border-red-500/20';
   const reqCount = parseInt(slider.value) || 10;
   summary.innerHTML = `
     <div class="flex items-center gap-2 flex-wrap mb-2">
       <h3 class="text-base font-bold text-slate-100">${data.channel_name || 'Channel'}</h3>
-      <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-red-500/20 text-red-300 border border-red-500/30">${data.video_count} videos scanned</span>
+      <span class="px-2 py-0.5 text-xs font-semibold rounded-full border ${providerBadgeCls}">${providerLabel}</span>
+      <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-white/5 text-slate-400 border border-white/10">${data.video_count} ${itemWord} scanned</span>
       ${data.video_count !== reqCount ? `<span class="px-2 py-0.5 text-xs rounded-full bg-white/5 text-slate-500 border border-white/10">${reqCount} requested</span>` : ''}
     </div>
     <p class="text-slate-400 text-sm leading-relaxed">${data.summary}</p>
-    ${data.tone ? `<span class="inline-block mt-2 px-2.5 py-0.5 text-xs font-semibold rounded-full bg-gradient-to-r from-red-500/20 to-rose-500/20 text-red-300 border border-red-500/20 capitalize">${data.tone}</span>` : ''}`;
+    ${data.tone ? `<span class="inline-block mt-2 px-2.5 py-0.5 text-xs font-semibold rounded-full bg-gradient-to-r ${toneBadgeCls} border capitalize">${data.tone}</span>` : ''}`;
 
   const ki = data.key_insights || [];
   if (ki.length) {
@@ -355,26 +437,43 @@ function renderResults(data) {
   }
 
   cards.innerHTML = '';
+  const hoverShadow = isSpotify ? 'hover:shadow-emerald-500/10' : 'hover:shadow-red-500/10';
+  const hoverText = isSpotify ? 'group-hover:text-emerald-300' : 'group-hover:text-red-300';
   (data.recommendations || []).forEach((r, i) => {
-    const videoId = extractVideoId(r.url);
+    const videoId = !isSpotify && extractVideoId(r.url);
     const thumb = videoId ? `https://img.youtube.com/vi/${videoId}/mqdefault.jpg` : null;
-    const scoreColor = r.score >= 70 ? 'from-red-500 to-rose-500' : r.score >= 40 ? 'from-amber-500 to-orange-500' : 'from-slate-500 to-slate-600';
+    const highScore = isSpotify ? 'from-emerald-500 to-emerald-500' : 'from-red-500 to-rose-500';
+    const scoreColor = r.score >= 70 ? highScore : r.score >= 40 ? 'from-amber-500 to-orange-500' : 'from-slate-500 to-slate-600';
     const card = document.createElement('a');
     card.href = r.url;
     card.target = '_blank';
-    card.className = 'group bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden hover:scale-[1.02] hover:shadow-lg hover:shadow-red-500/10 transition-all duration-300 block animate-fade-in-up';
+    card.className = `group bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden hover:scale-[1.02] hover:shadow-lg ${hoverShadow} transition-all duration-300 block animate-fade-in-up`;
     card.style.animationDelay = `${0.25 + i * 0.06}s`;
-    card.innerHTML = `
-      ${thumb ? `
+
+    let heroHtml = '';
+    if (thumb) {
+      heroHtml = `
       <div class="relative">
         <img src="${thumb}" alt="" class="w-full aspect-video object-cover" loading="lazy">
         <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/30">
           <svg class="w-12 h-12 text-white drop-shadow-lg" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
         </div>
         <span class="absolute bottom-2 left-2 px-2 py-0.5 text-xs font-medium rounded-lg bg-black/70 text-slate-200 backdrop-blur-sm">${r.duration}</span>
-      </div>` : ''}
+      </div>`;
+    } else if (isSpotify) {
+      heroHtml = `
+      <div class="relative bg-gradient-to-br from-emerald-900/40 to-emerald-950/60 flex items-center justify-center py-6">
+        <svg class="w-10 h-10 text-emerald-400 opacity-60" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+        <span class="absolute bottom-2 left-2 px-2 py-0.5 text-xs font-medium rounded-lg bg-black/50 text-emerald-200 backdrop-blur-sm">${r.duration}</span>
+      </div>`;
+    }
+
+    const viewsHtml = r.views > 0 ? `<span>${formatViews(r.views)} views</span>` : '';
+
+    card.innerHTML = `
+      ${heroHtml}
       <div class="p-3">
-        <h4 class="text-sm font-semibold text-slate-200 group-hover:text-red-300 transition-colors line-clamp-2 leading-snug">${r.title}</h4>
+        <h4 class="text-sm font-semibold text-slate-200 ${hoverText} transition-colors line-clamp-2 leading-snug">${r.title}</h4>
         <p class="text-xs text-slate-500 mt-1.5 line-clamp-2 leading-relaxed">${r.why}</p>
         <div class="mt-2">
           <div class="flex items-center justify-between text-xs mb-1">
@@ -386,8 +485,8 @@ function renderResults(data) {
           </div>
         </div>
         <div class="flex items-center justify-between mt-2 text-xs text-slate-600">
-          <span>${formatViews(r.views)} views</span>
-          ${!thumb ? `<span>${r.duration}</span>` : ''}
+          ${viewsHtml}
+          ${!thumb && !isSpotify ? `<span>${r.duration}</span>` : ''}
         </div>
       </div>`;
     cards.appendChild(card);
@@ -400,7 +499,7 @@ function showError(msg) {
   errorEl.classList.remove('hidden');
   errorEl.textContent = msg;
   btn.disabled = false;
-  btn.textContent = 'Analyze Channel';
+  btn.textContent = PROVIDER_CONFIG[document.getElementById('provider').value].btnText;
 }
 
 function formatViews(n) { return n >= 1e6 ? (n/1e6).toFixed(1)+'M' : n >= 1e3 ? (n/1e3).toFixed(1)+'K' : String(n); }
